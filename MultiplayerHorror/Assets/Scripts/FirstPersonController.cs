@@ -41,6 +41,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private float m_NextStep;
         private bool m_Jumping;
         private AudioSource m_AudioSource;
+        private float crouchHeight;
+        private float standingHeight;
 
         // Use this for initialization
         private void Start()
@@ -55,6 +57,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_Jumping = false;
             m_AudioSource = GetComponent<AudioSource>();
 			m_MouseLook.Init(transform , m_Camera.transform);
+            standingHeight = transform.localScale.y;
+            crouchHeight = transform.localScale.y / 2;
         }
 
 
@@ -96,6 +100,19 @@ namespace UnityStandardAssets.Characters.FirstPerson
         {
             float speed;
             GetInput(out speed);
+            if (Input.GetButton("Crouch"))
+            {
+                speed = speed / 2;
+                transform.localScale = new Vector3(1, crouchHeight, 1);
+            }
+            else if (Input.GetButton("SlowWalk"))
+            {
+                speed = speed / 2;
+            }
+            if (!Input.GetButton("Crouch"))
+            {
+                transform.localScale = new Vector3(1, 1, 1);
+            }
             // always move along the camera forward as it is the direction that it being aimed at
             Vector3 desiredMove = transform.forward*m_Input.y + transform.right*m_Input.x;
 
