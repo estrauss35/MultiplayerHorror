@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityStandardAssets.CrossPlatformInput;
 using UnityStandardAssets.Utility;
@@ -29,6 +30,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private AudioClip m_JumpSound;           // the sound played when character leaves the ground.
         [SerializeField] private AudioClip m_LandSound;           // the sound played when character touches back on ground.
 
+        private Vector3 cameraCenter;
+        public InventorySystem inventory;
         private Camera m_Camera;
         private bool m_Jump;
         private float m_YRotation;
@@ -44,10 +47,26 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private AudioSource m_AudioSource;
         private float crouchHeight;
         private float standingHeight;
+        private LayerMask pickups;
+        private LayerMask doors;
+        private Rect position;
+        public Texture2D crosshairTexture;
+        private bool canPickup;
+        public bool canOpenDoor;
+        private InventoryItem pickupItem;
+        private GameObject door;
+        
 
         // Use this for initialization
         private void Start()
         {
+            canOpenDoor = false;
+            inventory = GetComponent<InventorySystem>();
+            GameObject.Find("spawnCam").SetActive(false);
+            canPickup = false;
+            position = new Rect((Screen.width - crosshairTexture.width) / 2, (Screen.height - crosshairTexture.height) / 2, crosshairTexture.width, crosshairTexture.height);
+            pickups = LayerMask.GetMask("Pickup");
+            doors = LayerMask.GetMask("Door");
             m_CharacterController = GetComponent<CharacterController>();
             m_Camera = Camera.main;
             m_OriginalCameraPosition = m_Camera.transform.localPosition;
@@ -62,12 +81,19 @@ namespace UnityStandardAssets.Characters.FirstPerson
             crouchHeight = transform.localScale.y / 2;
         }
 
+        private void OnGUI()
+        {
+            GUI.DrawTexture(position, crosshairTexture);
+        }
+
 
         // Update is called once per frame
         private void Update()
         {
             if(!isLocalPlayer)
             {
+                GetComponent<FirstPersonController>().enabled = false;
+                GetComponentInChildren<Camera>().enabled = false;
                 return;
             }
             RotateView();
@@ -88,7 +114,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
             {
                 m_MoveDir.y = 0f;
             }
-
+            cameraCenter = GetComponentInChildren<Camera>().ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2, GetComponentInChildren<Camera>().nearClipPlane));
+            
+            
             m_PreviouslyGrounded = m_CharacterController.isGrounded;
         }
 
@@ -103,6 +131,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void FixedUpdate()
         {
+            PickupCheck();
             float speed;
             GetInput(out speed);
             if (Input.GetButton("Crouch"))
@@ -118,6 +147,27 @@ namespace UnityStandardAssets.Characters.FirstPerson
             {
                 transform.localScale = new Vector3(1, 1, 1);
             }
+            if (Input.GetMouseButtonDown(0))
+            {
+                if(canPickup)
+                {
+                    inventory.AddItem(pickupItem);
+                    pickupItem.gameObject.SetActive(false);
+                    
+                }
+                else if (canOpenDoor)
+                {
+                    if (!door.GetComponent<DoorControls>().unlocked)
+                    {
+                        door.GetComponent<DoorControls>().unlockDoor(gameObject);
+                    }
+                    else
+                    {
+                        door.GetComponent<DoorControls>().openDoor();
+                    }
+                }
+            }
+            
             // always move along the camera forward as it is the direction that it being aimed at
             Vector3 desiredMove = transform.forward*m_Input.y + transform.right*m_Input.x;
 
@@ -160,6 +210,33 @@ namespace UnityStandardAssets.Characters.FirstPerson
         {
             m_AudioSource.clip = m_JumpSound;
             m_AudioSource.Play();
+        }
+
+        private void PickupCheck()
+        {
+            Ray ray = new Ray(cameraCenter, transform.GetChild(0).transform.forward * 2);
+            RaycastHit hit;
+            Physics.Raycast(ray, out hit);
+            if (Physics.Raycast(cameraCenter, transform.GetChild(0).transform.forward, 2, pickups))
+            {
+                canPickup = true;
+                pickupItem = hit.collider.gameObject.GetComponent<InventoryItem>();
+            }
+            else
+            {
+                canPickup = false;
+                pickupItem = null;
+            }
+            if(Physics.Raycast(cameraCenter, transform.GetChild(0).transform.forward, 2, doors))
+            {
+                canOpenDoor = true;
+                door = hit.collider.gameObject;
+            }
+            else
+            {
+                canOpenDoor = false;
+                door = null;
+            }
         }
 
 

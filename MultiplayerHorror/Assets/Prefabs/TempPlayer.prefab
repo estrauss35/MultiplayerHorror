@@ -25,6 +25,7 @@ GameObject:
   - component: {fileID: 82079462728520778}
   - component: {fileID: 114505384172437188}
   - component: {fileID: 114959166745759490}
+  - component: {fileID: 114139658765633658}
   m_Layer: 0
   m_Name: TempPlayer
   m_TagString: Untagged
@@ -517,6 +518,19 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 8bc94ec6ed537e743b481638bdcd503d, type: 3}
   m_JumpSound: {fileID: 8300000, guid: 5897aeed9b676024fbb8c694b421a861, type: 3}
   m_LandSound: {fileID: 8300000, guid: 3b09d59f4499d45428baa7a21e954296, type: 3}
+  crosshairTexture: {fileID: 2800000, guid: 4026120756f657f4387f9735ddf902ca, type: 3}
+--- !u!114 &114139658765633658
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1142416193092758}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfb0deb76bee6a04dac6598fe1f28a3c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  items: []
 --- !u!114 &114505384172437188
 MonoBehaviour:
   m_ObjectHideFlags: 1
